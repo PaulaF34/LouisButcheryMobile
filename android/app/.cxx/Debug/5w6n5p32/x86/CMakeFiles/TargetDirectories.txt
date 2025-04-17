@@ -1,0 +1,2 @@
+C:/code/louisbutcheryapp/android/app/.cxx/Debug/5w6n5p32/x86/CMakeFiles/edit_cache.dir
+C:/code/louisbutcheryapp/android/app/.cxx/Debug/5w6n5p32/x86/CMakeFiles/rebuild_cache.dir
