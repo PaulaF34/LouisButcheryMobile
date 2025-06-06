@@ -6,12 +6,13 @@ import '../Routes/AppRoute.dart';
 
 class Registration extends StatelessWidget {
   final RegistrationController controller = Get.put(RegistrationController());
+  final RxBool _obscurePassword = true.obs; // For password visibility toggle
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Register")),
-      resizeToAvoidBottomInset: true, // Helps avoid overflow
+      resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -48,14 +49,22 @@ class Registration extends StatelessWidget {
               ),
             ),
             SizedBox(height: 12),
-            TextField(
+            Obx(() => TextField(
               controller: controller.password,
               decoration: InputDecoration(
                 labelText: "Password",
                 hintText: "Enter a secure password",
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword.value ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: () {
+                    _obscurePassword.value = !_obscurePassword.value;
+                  },
+                ),
               ),
-              obscureText: true,
-            ),
+              obscureText: _obscurePassword.value,
+            )),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: controller.register,

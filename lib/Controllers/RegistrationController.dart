@@ -13,23 +13,42 @@ class RegistrationController extends GetxController {
 
   void register() async {
     User user = User(
-      name: name.text,
-      address: address.text,
-      email: email.text,
-      phone: phone.text,
+      name: name.text.trim(),
+      address: address.text.trim(),
+      email: email.text.trim(),
+      phone: phone.text.trim(),
       password: password.text,
-      role: 'customer', // Force default role
+      role: 'customer',
     );
 
-    String requestBody = user.toJson();
+    try {
+      var post = await DioClient().getInstance().post(
+        '/register',
+        data: user.toJson(), // ✅ Send as Map, not String
+      );
 
-    var post = await DioClient().getInstance().post('/register', data: requestBody);
-
-    if (post.statusCode == 200) {
-      ShowSuccessDialog(Get.context!, "Success", "Registration Successful", () {});
-      Get.offAllNamed('/login');
-    } else {
-      ShowSuccessDialog(Get.context!, "Error", "Registration Failed", () {});
+      if ((post.statusCode == 200 || post.statusCode == 201) && post.data['success'] == true) {
+        ShowSuccessDialog(
+          Get.context!,
+          "Success",
+          "Registration Successful",
+              () => Get.offAllNamed('/login'),
+        );
+      } else {
+        ShowSuccessDialog(
+          Get.context!,
+          "Error",
+          post.data['message'] ?? "Registration Failed",
+              () {},
+        );
+      }
+    } catch (e) {
+      ShowSuccessDialog(
+        Get.context!,
+        "Error",
+        "Connection Failed: $e",
+            () {},
+      );
     }
   }
 }

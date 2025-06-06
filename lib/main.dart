@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'Routes/AppPage.dart';
 import 'Routes/AppRoute.dart';
-import 'package:louisbutcheryapp/Views/Welcome.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token');
+
+  runApp(MyApp(initialRoute: token != null ? AppRoute.home : AppRoute.welcome));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +26,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFFB63741)),
         useMaterial3: true,
       ),
-      initialRoute: AppRoute.welcome,
+      initialRoute: initialRoute,
       getPages: AppPage.pages,
     );
   }
 }
-

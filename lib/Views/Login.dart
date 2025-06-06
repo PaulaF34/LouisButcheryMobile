@@ -5,15 +5,17 @@ import 'package:louisbutcheryapp/Routes/AppRoute.dart';
 
 class Login extends GetView<LoginController> {
   final LoginController _controller = Get.put(LoginController());
+  final RxBool _obscurePassword = true.obs; // Add observable to manage password visibility
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar( title: Text("Login"),
+      appBar: AppBar(
+        title: Text("Login"),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Get.offNamed(AppRoute.welcome); // Explicitly go to Welcome page
+            Get.offNamed(AppRoute.welcome);
           },
         ),
         backgroundColor: Colors.transparent,
@@ -30,14 +32,22 @@ class Login extends GetView<LoginController> {
                 hintText: "Enter your email",
               ),
             ),
-            TextField(
+            Obx(() => TextField(
               controller: _controller.password,
               decoration: InputDecoration(
                 labelText: "Password",
                 hintText: "Enter your password",
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword.value ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: () {
+                    _obscurePassword.value = !_obscurePassword.value;
+                  },
+                ),
               ),
-              obscureText: true,
-            ),
+              obscureText: _obscurePassword.value,
+            )),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {

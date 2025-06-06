@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:louisbutcheryapp/Models/User.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:louisbutcheryapp/Core/Network/DioClient.dart';
 import 'package:louisbutcheryapp/Core/Network/ShowSuccessDialog.dart';
+import 'package:louisbutcheryapp/Routes/AppRoute.dart'; // add this to use named routes
 
-class LoginController extends GetxController{
+class LoginController extends GetxController {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
 
@@ -13,47 +13,60 @@ class LoginController extends GetxController{
 
   @override
   void onInit() {
-    // TODO: implement onInit
     super.onInit();
     _loadPrefs();
   }
 
-  void _loadPrefs() async{
+  void _loadPrefs() async {
     prefs = await SharedPreferences.getInstance();
-    if (prefs.getString('token') != null){
-      Get.offAllNamed('/home');
+    if (prefs.getString('token') != null) {
+      Get.offAllNamed(AppRoute.home); // Use your AppRoute properly
     }
   }
 
-  void login () async{
-    print("Login Logic goes here");
+  void login() async {
+    print("Attempting login...");
     print('Email: ${email.text}');
     print('Password: ${password.text}');
 
-    User user = User(
-      email: email.text,
-      password: password.text,
-    );
+    try {
+      var post = await DioClient().getInstance().post(
+        '/login', // Correct endpoint (Laravel route), usually prefixed with /api
+        data: {
+          'email': email.text.trim(),
+          'password': password.text.trim(),
+        },
+      );
 
-    String requestBody = user.toJson();
+      if (post.statusCode == 200) {
+        final token = post.data['token'];
+        final message = post.data['message'] ?? 'Login successful';
 
-    var post = await DioClient().getInstance().post('/login', data: requestBody);
+        if (token != null) {
+          prefs.setString('token', token);
 
-    if (post.statusCode == 200){
-      if (post.data['success']){
-        ShowSuccessDialog(Get.context!, "Success", "Login Successful", (){
-          // print("User Logged in successfully");
-          // print("Token: ${post.data['token']}");
-          prefs.setString('token', post.data['token']);
-          Get.offAllNamed('/home');
-        });
-      }else{
-        ShowSuccessDialog(Get.context!, "Error", "Login Failed", (){});
-      }}else{
-      ShowSuccessDialog(Get.context!, "Error", "Login Failed", (){});
+          ShowSuccessDialog(
+            Get.context!,
+            "Success",
+            message,
+                () {
+              Get.offAllNamed(AppRoute.home);
+            },
+          );
+        } else {
+          ShowSuccessDialog(
+            Get.context!,
+            "Error",
+            "Token not found in response.",
+                () {},
+          );
+        }
+      } else {
+        ShowSuccessDialog(Get.context!, "Error", "Server error", () {});
+      }
+    } catch (e) {
+      print('Login error: $e');
+      ShowSuccessDialog(Get.context!, "Error", "Connection failed", () {});
     }
-
   }
-
-
 }

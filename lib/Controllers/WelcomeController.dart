@@ -8,4 +8,8 @@ class WelcomeController extends GetxController {
   void goToRegister() {
     Get.toNamed('/register');
   }
+
+  void logout() {
+    Get.offAllNamed('/welcome');
+  }
 }
