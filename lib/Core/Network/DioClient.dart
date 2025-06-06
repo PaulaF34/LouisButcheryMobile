@@ -5,7 +5,7 @@ class DioClient {
   Dio getInstance() {
     Dio dio = Dio(
       BaseOptions(
-        baseUrl: 'http://192.168.1.22:8000/api/auth',
+        baseUrl: 'http://192.168.1.24:8000/api/auth',
         connectTimeout: Duration(seconds: 50),
         receiveTimeout: Duration(seconds: 50),
         contentType: Headers.jsonContentType,
