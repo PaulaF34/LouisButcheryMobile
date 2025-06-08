@@ -5,6 +5,8 @@ import '../Routes/AppRoute.dart';
 
 class HomeController extends GetxController {
   var products = [].obs;
+  var filteredProducts = [].obs;
+  var categories = <String>[].obs;
   var isLoading = true.obs;
 
   @override
@@ -16,10 +18,16 @@ class HomeController extends GetxController {
   void fetchProducts() async {
     try {
       isLoading(true);
-      final response = await DioClient().getInstance().get('/products');
+      final dio = DioClient().dio; // ✅ Correct usage
+      final response = await dio.get('/products'); // assumes baseUrl = /api
 
       if (response.statusCode == 200) {
         products.value = response.data;
+        filteredProducts.assignAll(products);
+        extractCategories();
+        print(response.data);
+      } else {
+        print('Unexpected status: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching products: $e');
@@ -28,10 +36,27 @@ class HomeController extends GetxController {
     }
   }
 
+  void extractCategories() {
+    final uniqueCategories = products
+        .map((p) => p['category'])
+        .whereType<String>()
+        .toSet()
+        .toList();
+    categories.assignAll(uniqueCategories);
+  }
+
+  void filterByCategory(String category) {
+    filteredProducts.value =
+        products.where((p) => p['category'] == category).toList();
+  }
+
+  void clearCategory() {
+    filteredProducts.assignAll(products);
+  }
+
   void logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
-    Get.offAllNamed(AppRoute.login); // or AppRoute.welcome
+    Get.offAllNamed(AppRoute.login);
   }
-
 }

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:louisbutcheryapp/Core/Network/DioClient.dart';
 import 'package:louisbutcheryapp/Core/Network/ShowSuccessDialog.dart';
+import 'package:louisbutcheryapp/Routes/AppRoute.dart';
 import '../Models/User.dart';
 
 class RegistrationController extends GetxController {
@@ -22,23 +23,26 @@ class RegistrationController extends GetxController {
     );
 
     try {
-      var post = await DioClient().getInstance().post(
-        '/register',
-        data: user.toJson(), // ✅ Send as Map, not String
+      final dio = DioClient().dio; // ✅ Correct usage of DioClient singleton
+
+      var response = await dio.post(
+        '/auth/register', // ✅ Correct endpoint path
+        data: user.toJson(),
       );
 
-      if ((post.statusCode == 200 || post.statusCode == 201) && post.data['success'] == true) {
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          (response.data['success'] == true || response.data['token'] != null)) {
         ShowSuccessDialog(
           Get.context!,
           "Success",
           "Registration Successful",
-              () => Get.offAllNamed('/login'),
+              () => Get.offAllNamed(AppRoute.login),
         );
       } else {
         ShowSuccessDialog(
           Get.context!,
           "Error",
-          post.data['message'] ?? "Registration Failed",
+          response.data['message'] ?? "Registration Failed",
               () {},
         );
       }

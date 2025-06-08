@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:louisbutcheryapp/Core/Network/DioClient.dart';
 import 'package:louisbutcheryapp/Core/Network/ShowSuccessDialog.dart';
-import 'package:louisbutcheryapp/Routes/AppRoute.dart'; // add this to use named routes
+import 'package:louisbutcheryapp/Routes/AppRoute.dart';
 
 class LoginController extends GetxController {
   TextEditingController email = TextEditingController();
@@ -20,7 +20,7 @@ class LoginController extends GetxController {
   void _loadPrefs() async {
     prefs = await SharedPreferences.getInstance();
     if (prefs.getString('token') != null) {
-      Get.offAllNamed(AppRoute.home); // Use your AppRoute properly
+      Get.offAllNamed(AppRoute.home);
     }
   }
 
@@ -30,20 +30,22 @@ class LoginController extends GetxController {
     print('Password: ${password.text}');
 
     try {
-      var post = await DioClient().getInstance().post(
-        '/login', // Correct endpoint (Laravel route), usually prefixed with /api
+      final dio = DioClient().dio; // ✅ Correct usage of singleton
+
+      var response = await dio.post(
+        '/auth/login', // ✅ Full path under /api
         data: {
           'email': email.text.trim(),
           'password': password.text.trim(),
         },
       );
 
-      if (post.statusCode == 200) {
-        final token = post.data['token'];
-        final message = post.data['message'] ?? 'Login successful';
+      if (response.statusCode == 200) {
+        final token = response.data['token'];
+        final message = response.data['message'] ?? 'Login successful';
 
         if (token != null) {
-          prefs.setString('token', token);
+          await prefs.setString('token', token);
 
           ShowSuccessDialog(
             Get.context!,
@@ -62,7 +64,7 @@ class LoginController extends GetxController {
           );
         }
       } else {
-        ShowSuccessDialog(Get.context!, "Error", "Server error", () {});
+        ShowSuccessDialog(Get.context!, "Error", "Wrong Credentials", () {});
       }
     } catch (e) {
       print('Login error: $e');
